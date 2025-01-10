@@ -5,67 +5,60 @@
 import csv  # For reading CSV files
 import os   # For handling file paths
  
-# Define file paths using raw strings to avoid escape character issues
-# Input path points to the CSV file containing budget data
+# Files to load and output (update with correct file paths)
 file_to_load = r"C:\\Users\\carls\\Desktop\\Repositories\\python-challenge\\PyBank\\Resources\\budget_data.csv"
-# Output path specifies where the analysis results will be saved
 file_to_output = r"C:\\Users\\carls\Desktop\\Repositories\\python-challenge\\PyBank\\analysis\budget_analysis.txt"
-# Initialize variables to store our financial analysis data
-total_months = 0      # Will count the total number of months in dataset
-total_net = 0        # Will sum all profit/losses
-net_change_list = [] # Will store month-to-month changes
-date_list = []       # Will store dates corresponding to changes
-previous_net = None  # Will store previous month's profit/loss for change calculation
+
+# Define variables to track the financial data
+total_months = 0      
+total_net = 0        
+net_change_list = [] 
+date_list = []       
+previous_net = None  
+ # Add more variables to track other necessary financial data
+
+# Open and read the csv
+with open(file_to_load) as financial_data:
+        
+    reader = csv.reader(financial_data)
  
-try:  # Use try-except to handle potential file errors
-    # Open and read the CSV file
-    with open(file_to_load) as financial_data:
-        # Create CSV reader object
-        reader = csv.reader(financial_data)
+    # Skip the header row 
+    header = next(reader)  
+    # Extract first row to avoid appending to net_change_list
+    first_row = next(reader)
+    total_months = 1  
+    total_net = int(first_row[1])  
+    previous_net = int(first_row[1])  
  
-        # Skip the header row but store it for reference
-        header = next(reader)  # Header should be ["Date", "Profit/Losses"]
+     # Track the total
+    for row in reader:
+        total_months += 1
  
-        # Process first row separately to establish baseline
-        first_row = next(reader)
-        total_months = 1  # Count first month
-        total_net = int(first_row[1])  # Add first profit/loss to total
-        previous_net = int(first_row[1])  # Set baseline for change calculation
+        current_net = int(row[1])
+        total_net += current_net
  
-        # Loop through remaining rows in the dataset
-        for row in reader:
-            # Count each month
-            total_months += 1
+        
+        net_change = current_net - previous_net
  
-            # Convert profit/loss string to integer and add to total
-            current_net = int(row[1])
-            total_net += current_net
+        date_list.append(row[0])
+        net_change_list.append(net_change)
  
-            # Calculate change from previous month
-            net_change = current_net - previous_net
+        previous_net = current_net
  
-            # Store the date and change in their respective lists
-            date_list.append(row[0])
-            net_change_list.append(net_change)
+
+# Calculate the greatest increase in profits (month and amount)
+average_change = sum(net_change_list) / len(net_change_list)
  
-            # Update previous_net for next iteration
-            previous_net = current_net
+# Track the net change
+greatest_increase = max(net_change_list)
+greatest_decrease = min(net_change_list)
  
-    # Calculate financial metrics
-    # Average change is sum of changes divided by number of changes
-    average_change = sum(net_change_list) / len(net_change_list)
+# Calculate the greatest decrease in losses (month and amount)
+increase_date = date_list[net_change_list.index(greatest_increase)]
+decrease_date = date_list[net_change_list.index(greatest_decrease)]
  
-    # Find greatest increase and decrease
-    greatest_increase = max(net_change_list)
-    greatest_decrease = min(net_change_list)
- 
-    # Find dates corresponding to greatest changes
-    # Add 1 to index because changes list is one shorter than dates list
-    increase_date = date_list[net_change_list.index(greatest_increase)]
-    decrease_date = date_list[net_change_list.index(greatest_decrease)]
- 
-    # Create formatted output string
-    output = (
+# Generate the output summary
+output = (
         "\nFinancial Analysis\n"
         "-------------------------\n"
         f"Total Months: {total_months}\n"
@@ -75,22 +68,11 @@ try:  # Use try-except to handle potential file errors
         f"Greatest Decrease in Profits: {decrease_date} (${greatest_decrease:,})\n"
     )
  
-    # Print results to terminal
-    print(output)
+    # Print the output
+print(output)
  
     # Write results to text file
-    with open(file_to_output, "w") as txt_file:
+with open(file_to_output, "w") as txt_file:
         txt_file.write(output)
  
-    print(f"\nResults have been written to: {file_to_output}")
- 
-except FileNotFoundError:
-    # Handle case where input file isn't found
-    print(f"Error: Could not find the file at {file_to_load}")
-    print("Please check if:")
-    print("1. The path is correct")
-    print("2. The Resources folder exists")
-    print("3. The budget_data.csv file is in the Resources folder")
-except Exception as e:
-    # Handle any other unexpected errors
-    print(f"An error occurred: {str(e)}")
+print(f"\nResults have been written to: {file_to_output}")
